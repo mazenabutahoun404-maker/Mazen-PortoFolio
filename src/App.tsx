@@ -1066,27 +1066,29 @@ export default function App() {
         .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 4px; }
         .hamburger span { display: block; width: 22px; height: 2px; border-radius: 2px; transition: all .3s ease; }
 
+        @media (min-width: 769px) {
+          .mobile-menu { display: none !important; }
+        }
         @media (max-width: 768px) {
           .nav-desktop { display: none !important; }
           .hamburger { display: flex; }
           .mobile-menu {
             position: fixed;
             top: 4.8rem;
-            left: 1rem;
-            right: 1rem;
-            max-width: 420px;
-            margin: 0 auto;
+            left: 50%;
+            transform: ${menuOpen ? "translate(-50%, 0) scale(1)" : "translate(-50%, -12px) scale(0.95)"};
+            width: calc(100% - 2rem);
+            max-width: 380px;
             z-index: 1000;
             display: flex;
             flex-direction: column;
-            gap: .35rem;
+            gap: .3rem;
             padding: 1rem;
             border-radius: 1.25rem;
-            background: ${light ? "rgba(255,255,255,.94)" : "rgba(8,12,22,.94)"};
+            background: ${light ? "rgba(255,255,255,.95)" : "rgba(8,12,22,.95)"};
             backdrop-filter: blur(28px);
-            border: 1px solid ${ac}35;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.7), 0 0 25px ${ac}20;
-            transform: ${menuOpen ? "translateY(0) scale(1)" : "translateY(-12px) scale(0.96)"};
+            border: 1px solid ${ac}40;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 25px ${ac}25;
             opacity: ${menuOpen ? 1 : 0};
             pointer-events: ${menuOpen ? "auto" : "none"};
             transition: all .35s cubic-bezier(.16,1,.3,1);
@@ -1188,20 +1190,20 @@ export default function App() {
       {/* ════ NAV — Floating Cyber Capsule Island ═════════════════ */}
       <nav style={{
         position: "fixed",
-        top: "1rem",
+        top: "1.2rem",
         left: "50%",
         transform: "translateX(-50%)",
-        width: "min(1100px, calc(100% - 2rem))",
+        width: "min(1050px, calc(100% - 2rem))",
         zIndex: 1000,
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        padding: ".6rem 1.4rem",
+        padding: ".5rem 1.2rem",
         borderRadius: 50,
         backdropFilter: "blur(28px)",
-        background: light ? "rgba(255, 255, 255, 0.85)" : "rgba(6, 10, 18, 0.82)",
+        background: light ? "rgba(255, 255, 255, 0.88)" : "rgba(6, 10, 18, 0.85)",
         border: `1px solid ${ac}35`,
-        boxShadow: `0 10px 40px rgba(0,0,0,0.5), 0 0 20px ${ac}18`,
+        boxShadow: `0 10px 40px rgba(0,0,0,0.6), 0 0 20px ${ac}18`,
         transition: "all .6s ease"
       }}>
         <NavLogo ac={ac} ac2={ac2} />
