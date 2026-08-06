@@ -157,6 +157,7 @@ const Cubes: React.FC<CubesProps> = ({
   const tiltAt = useCallback(
     (rowCenter: number, colCenter: number) => {
       if (!sceneRef.current) return;
+      if (window.innerWidth <= 768 || window.matchMedia('(pointer: coarse)').matches) return;
       sceneRef.current.querySelectorAll<HTMLDivElement>('.cube').forEach(cube => {
         const r = +cube.dataset.row!;
         const c = +cube.dataset.col!;
@@ -322,6 +323,7 @@ const Cubes: React.FC<CubesProps> = ({
 
   useEffect(() => {
     if (!autoAnimate || !sceneRef.current) return;
+    if (window.innerWidth <= 768 || window.matchMedia('(pointer: coarse)').matches) return;
 
     let isVisible = false;
     const observer = new IntersectionObserver(([entry]) => {
@@ -1135,9 +1137,9 @@ export default function App() {
         ))}
       </div>
 
-      {/* cursor — hidden on touch */}
-      <div ref={cursorRef} style={{ position: "fixed", pointerEvents: "none", zIndex: 9999, width: 20, height: 20, border: `1px solid ${ac}`, borderRadius: "50%", transition: "border-color .5s, width .3s, height .3s" }} />
-      <div ref={cursorDotRef} style={{ position: "fixed", pointerEvents: "none", zIndex: 9999, width: 5, height: 5, background: ac, borderRadius: "50%", transform: "translate(-50%,-50%)", transition: "background .5s" }} />
+      {/* cursor — hidden on touch & mobile */}
+      <div ref={cursorRef} className="custom-cursor" style={{ position: "fixed", pointerEvents: "none", zIndex: 9999, width: 20, height: 20, border: `1px solid ${ac}`, borderRadius: "50%", transition: "border-color .5s, width .3s, height .3s" }} />
+      <div ref={cursorDotRef} className="custom-cursor" style={{ position: "fixed", pointerEvents: "none", zIndex: 9999, width: 5, height: 5, background: ac, borderRadius: "50%", transform: "translate(-50%,-50%)", transition: "background .5s" }} />
 
       {/* section dot navigator */}
       <div className="section-nav" style={{ position: "fixed", bottom: "2rem", right: "1.5rem", zIndex: 50, display: "flex", flexDirection: "column", gap: ".45rem", alignItems: "flex-end" }}>
@@ -1535,6 +1537,10 @@ export default function App() {
         @media (max-width: 768px) {
           .mobile-theme-btn { display: block !important; }
           .nav-desktop { display: none !important; }
+          .custom-cursor { display: none !important; }
+        }
+        @media (hover: none) and (pointer: coarse) {
+          .custom-cursor { display: none !important; }
         }
         @media (max-width: 900px) {
           .cubes-custom-grid {
@@ -1548,28 +1554,36 @@ export default function App() {
             height: 58px !important;
           }
         }
-        @media (max-width: 600px) {
+        @media (max-width: 768px) {
           .cubes-custom-grid {
-            grid-template-columns: repeat(4, 54px) !important;
-            grid-template-rows: repeat(6, 54px) !important;
-            gap: 14px !important;
+            grid-template-columns: repeat(3, 1fr) !important;
+            grid-template-rows: auto !important;
+            gap: 12px !important;
             max-width: 100% !important;
+            width: 100% !important;
+            perspective: none !important;
           }
           .cubes-custom-grid .cube {
-            width: 54px !important;
-            height: 54px !important;
+            width: 100% !important;
+            height: 76px !important;
+            transform: none !important;
+            transform-style: flat !important;
+          }
+          .cubes-custom-grid .cube-face {
+            transform: none !important;
+            backface-visibility: visible !important;
+          }
+          .cubes-custom-grid .cube-face:not(.z-10) {
+            display: none !important;
           }
         }
-        @media (max-width: 420px) {
+        @media (max-width: 480px) {
           .cubes-custom-grid {
-            grid-template-columns: repeat(3, 48px) !important;
-            grid-template-rows: repeat(8, 48px) !important;
+            grid-template-columns: repeat(2, 1fr) !important;
             gap: 10px !important;
-            max-width: 100% !important;
           }
           .cubes-custom-grid .cube {
-            width: 48px !important;
-            height: 48px !important;
+            height: 78px !important;
           }
         }
       `}</style>
