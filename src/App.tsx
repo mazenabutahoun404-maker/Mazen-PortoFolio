@@ -333,75 +333,45 @@ const Cubes: React.FC<CubesProps> = ({
     if (!autoAnimate || !sceneRef.current) return;
 
     let isVisible = false;
-    let time = 0;
     let randomTimer: ReturnType<typeof setInterval> | null = null;
 
-    const loop = () => {
-      const isMobile = window.innerWidth <= 768 || window.matchMedia('(pointer: coarse)').matches;
-
-      // On Mobile: Rotate cubes in continuous 3D wave ALL THE TIME!
-      if (isVisible && isMobile && sceneRef.current) {
-        time += 0.025;
-        const cubes = sceneRef.current.querySelectorAll<HTMLDivElement>('.cube');
-        cubes.forEach(cube => {
-          const r = +cube.dataset.row!;
-          const c = +cube.dataset.col!;
-          const phase = r * 0.8 + c * 1.0;
-
-          const rotX = Math.sin(time + phase) * 20;
-          const rotY = Math.cos(time * 0.85 + phase * 1.2) * 24;
-
-          gsap.to(cube, {
-            duration: 0.5,
-            rotateX: rotX,
-            rotateY: rotY,
-            ease: 'sine.out',
-            overwrite: 'auto'
-          });
-        });
-      }
-
-      if (isVisible) {
-        simRAFRef.current = requestAnimationFrame(loop);
-      }
-    };
-
-    // On Desktop: when mouse is far away / idle for 3 seconds, randomly rotate a few cubes!
-    randomTimer = setInterval(() => {
-      const isMobile = window.innerWidth <= 768 || window.matchMedia('(pointer: coarse)').matches;
-      if (!isMobile && isVisible && !userActiveRef.current && sceneRef.current) {
+    // Trigger random 3D cube rotations every 1.8s (runs continuously on mobile & desktop!)
+    const triggerRandomRotation = () => {
+      if (isVisible && !userActiveRef.current && sceneRef.current) {
         const allCubes = Array.from(sceneRef.current.querySelectorAll<HTMLDivElement>('.cube'));
         if (allCubes.length === 0) return;
 
-        // Pick 3 to 5 random cubes
-        const count = Math.floor(Math.random() * 3) + 3;
+        // Pick 3 to 6 random cubes to tilt randomly
+        const count = Math.floor(Math.random() * 4) + 3;
         const shuffled = [...allCubes].sort(() => 0.5 - Math.random());
         const selected = shuffled.slice(0, count);
 
         selected.forEach(cube => {
           const rx = (Math.random() - 0.5) * 44;
           const ry = (Math.random() - 0.5) * 52;
+          const rz = (Math.random() - 0.5) * 12;
 
           gsap.to(cube, {
             rotateX: rx,
             rotateY: ry,
-            duration: 1.4,
+            z: rz,
+            duration: 1.2,
             ease: 'power2.out',
             yoyo: true,
             repeat: 1,
-            repeatDelay: 0.8
+            repeatDelay: 0.6
           });
         });
       }
-    }, 2800);
+    };
+
+    randomTimer = setInterval(triggerRandomRotation, 1800);
 
     const observer = new IntersectionObserver(([entry]) => {
       isVisible = entry.isIntersecting;
-      if (!isVisible && simRAFRef.current != null) {
-        cancelAnimationFrame(simRAFRef.current);
-        simRAFRef.current = null;
-      } else if (isVisible && simRAFRef.current == null) {
-        loop();
+      if (isVisible) {
+        // Trigger initial batch immediately on scroll into view
+        triggerRandomRotation();
       }
     }, { threshold: 0.1 });
 
@@ -410,9 +380,8 @@ const Cubes: React.FC<CubesProps> = ({
     return () => {
       observer.disconnect();
       if (randomTimer) clearInterval(randomTimer);
-      if (simRAFRef.current != null) cancelAnimationFrame(simRAFRef.current);
     };
-  }, [autoAnimate, cols, rows, tiltAt]);
+  }, [autoAnimate]);
 
   useEffect(() => {
     const el = sceneRef.current;
