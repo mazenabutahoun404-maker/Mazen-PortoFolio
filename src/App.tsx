@@ -157,16 +157,19 @@ const Cubes: React.FC<CubesProps> = ({
   const tiltAt = useCallback(
     (rowCenter: number, colCenter: number) => {
       if (!sceneRef.current) return;
-      if (window.innerWidth <= 768 || window.matchMedia('(pointer: coarse)').matches) return;
+      const isMobile = window.innerWidth <= 768 || window.matchMedia('(pointer: coarse)').matches;
+      const effectiveMaxAngle = isMobile ? 20 : maxAngle;
+      const effectiveRadius = isMobile ? 2.0 : radius;
+
       sceneRef.current.querySelectorAll<HTMLDivElement>('.cube').forEach(cube => {
         const r = +cube.dataset.row!;
         const c = +cube.dataset.col!;
         const dist = Math.hypot(r - rowCenter, c - colCenter);
-        if (dist <= radius) {
+        if (dist <= effectiveRadius) {
           const colDiff = colCenter - c;
           const rowDiff = rowCenter - r;
-          const rotY = (colDiff / radius) * maxAngle;
-          const rotX = -(rowDiff / radius) * maxAngle;
+          const rotY = (colDiff / effectiveRadius) * effectiveMaxAngle;
+          const rotX = -(rowDiff / effectiveRadius) * effectiveMaxAngle;
 
           gsap.to(cube, {
             duration: 1.4,
@@ -323,7 +326,6 @@ const Cubes: React.FC<CubesProps> = ({
 
   useEffect(() => {
     if (!autoAnimate || !sceneRef.current) return;
-    if (window.innerWidth <= 768 || window.matchMedia('(pointer: coarse)').matches) return;
 
     let isVisible = false;
     const observer = new IntersectionObserver(([entry]) => {
@@ -469,6 +471,7 @@ const Cubes: React.FC<CubesProps> = ({
                   {skill ? (
                     <>
                       <div
+                        className="cube-icon"
                         style={{
                           fontSize: '1.85rem',
                           marginBottom: '.15rem',
@@ -478,27 +481,33 @@ const Cubes: React.FC<CubesProps> = ({
                       >
                         {skill.icon}
                       </div>
-                      <div style={{
-                        fontFamily: "'Orbitron', sans-serif",
-                        fontSize: '.65rem',
-                        letterSpacing: '.05em',
-                        fontWeight: 900,
-                        color: light ? '#04140b' : '#ffffff',
-                        textAlign: 'center',
-                        lineHeight: 1.1,
-                        textShadow: light ? 'none' : `0 0 10px ${accentColor}aa, 0 1px 3px #000000`
-                      }}>
+                      <div
+                        className="cube-name"
+                        style={{
+                          fontFamily: "'Orbitron', sans-serif",
+                          fontSize: '.65rem',
+                          letterSpacing: '.05em',
+                          fontWeight: 900,
+                          color: light ? '#04140b' : '#ffffff',
+                          textAlign: 'center',
+                          lineHeight: 1.1,
+                          textShadow: light ? 'none' : `0 0 10px ${accentColor}aa, 0 1px 3px #000000`
+                        }}
+                      >
                         {skill.name}
                       </div>
-                      <div style={{
-                        fontSize: '.42rem',
-                        color: light ? '#007a3d' : accentColor,
-                        letterSpacing: '.12em',
-                        textTransform: 'uppercase',
-                        marginTop: '.12rem',
-                        fontWeight: 800,
-                        textShadow: light ? 'none' : `0 0 8px ${accentColor}`
-                      }}>
+                      <div
+                        className="cube-cat"
+                        style={{
+                          fontSize: '.42rem',
+                          color: light ? '#007a3d' : accentColor,
+                          letterSpacing: '.12em',
+                          textTransform: 'uppercase',
+                          marginTop: '.12rem',
+                          fontWeight: 800,
+                          textShadow: light ? 'none' : `0 0 8px ${accentColor}`
+                        }}
+                      >
                         {skill.cat}
                       </div>
                     </>
@@ -1544,46 +1553,56 @@ export default function App() {
         }
         @media (max-width: 900px) {
           .cubes-custom-grid {
-            grid-template-columns: repeat(6, 58px) !important;
-            grid-template-rows: repeat(4, 58px) !important;
-            gap: 18px !important;
+            grid-template-columns: repeat(6, 56px) !important;
+            grid-template-rows: repeat(4, 56px) !important;
+            gap: 16px !important;
             max-width: 100% !important;
           }
           .cubes-custom-grid .cube {
-            width: 58px !important;
-            height: 58px !important;
+            width: 56px !important;
+            height: 56px !important;
           }
         }
-        @media (max-width: 768px) {
+        @media (max-width: 600px) {
           .cubes-custom-grid {
-            grid-template-columns: repeat(3, 1fr) !important;
-            grid-template-rows: auto !important;
-            gap: 12px !important;
-            max-width: 100% !important;
-            width: 100% !important;
-            perspective: none !important;
-          }
-          .cubes-custom-grid .cube {
-            width: 100% !important;
-            height: 76px !important;
-            transform: none !important;
-            transform-style: flat !important;
-          }
-          .cubes-custom-grid .cube-face {
-            transform: none !important;
-            backface-visibility: visible !important;
-          }
-          .cubes-custom-grid .cube-face:not(.z-10) {
-            display: none !important;
-          }
-        }
-        @media (max-width: 480px) {
-          .cubes-custom-grid {
-            grid-template-columns: repeat(2, 1fr) !important;
+            grid-template-columns: repeat(4, 48px) !important;
+            grid-template-rows: repeat(6, 48px) !important;
             gap: 10px !important;
+            max-width: 100% !important;
           }
           .cubes-custom-grid .cube {
-            height: 78px !important;
+            width: 48px !important;
+            height: 48px !important;
+          }
+          .cubes-custom-grid .cube-icon {
+            font-size: 1.25rem !important;
+            margin-bottom: 0 !important;
+          }
+          .cubes-custom-grid .cube-name {
+            font-size: 0.5rem !important;
+          }
+          .cubes-custom-grid .cube-cat {
+            font-size: 0.35rem !important;
+          }
+        }
+        @media (max-width: 400px) {
+          .cubes-custom-grid {
+            grid-template-columns: repeat(3, 44px) !important;
+            grid-template-rows: repeat(8, 44px) !important;
+            gap: 8px !important;
+          }
+          .cubes-custom-grid .cube {
+            width: 44px !important;
+            height: 44px !important;
+          }
+          .cubes-custom-grid .cube-icon {
+            font-size: 1.15rem !important;
+          }
+          .cubes-custom-grid .cube-name {
+            font-size: 0.44rem !important;
+          }
+          .cubes-custom-grid .cube-cat {
+            display: none !important;
           }
         }
       `}</style>
