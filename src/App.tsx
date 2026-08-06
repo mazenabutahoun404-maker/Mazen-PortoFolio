@@ -1639,7 +1639,7 @@ export default function App() {
                 required
               />
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "1rem", marginTop: ".5rem" }}>
               <motion.button
                 type="submit"
                 initial={{ opacity: 0, y: 20 }}
@@ -1650,11 +1650,12 @@ export default function App() {
                   stiffness: 100,
                   damping: 20,
                 }}
-                className="btn-gradient-shadow self-start rounded-full border-none text-white font-['Orbitron',sans-serif] text-[0.7rem] tracking-[0.22em] font-bold cursor-pointer uppercase transition-all duration-300 animate-[heroGradient_4s_linear_infinite]"
+                className="btn-gradient-shadow rounded-full border-none text-white font-['Orbitron',sans-serif] text-[0.7rem] tracking-[0.22em] font-bold cursor-pointer uppercase transition-all duration-300 animate-[heroGradient_4s_linear_infinite]"
                 style={{
-                  padding: "1.2rem 2.5rem",
+                  padding: "1.2rem 2.8rem",
                   backgroundImage: `linear-gradient(135deg, ${SECTION_THEMES[6].color}, ${SECTION_THEMES[6].color2}, ${SECTION_THEMES[6].color})`,
-                  backgroundSize: "200% auto"
+                  backgroundSize: "200% auto",
+                  margin: "0 auto"
                 }}
                 onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.transform = "translateY(-3px) scale(1.02)"; }}
                 onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.transform = ""; }}
@@ -1662,7 +1663,7 @@ export default function App() {
               </motion.button>
 
               {contactSent && (
-                <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: ".65rem", letterSpacing: ".18em", color: SECTION_THEMES[6].color }}>
+                <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: ".65rem", letterSpacing: ".18em", color: SECTION_THEMES[6].color, textAlign: "center" }}>
                   ✓ Launching Mail Client...
                 </span>
               )}
