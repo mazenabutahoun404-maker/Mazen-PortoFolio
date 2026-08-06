@@ -335,21 +335,25 @@ const Cubes: React.FC<CubesProps> = ({
     let isVisible = false;
     let randomTimer: ReturnType<typeof setInterval> | null = null;
 
-    // Trigger random 3D cube rotations every 1.8s (runs continuously on mobile & desktop!)
-    const triggerRandomRotation = () => {
-      if (isVisible && !userActiveRef.current && sceneRef.current) {
+    const triggerRandomCubes = () => {
+      if (!sceneRef.current || !isVisible) return;
+      const isMobile = window.innerWidth <= 768 || window.matchMedia('(pointer: coarse)').matches;
+
+      // Desktop: Only rotate randomly if mouse has been away/idle for 3s (!userActiveRef.current)
+      // Mobile: ALWAYS randomly rotate cubes all the time!
+      if (isMobile || !userActiveRef.current) {
         const allCubes = Array.from(sceneRef.current.querySelectorAll<HTMLDivElement>('.cube'));
         if (allCubes.length === 0) return;
 
-        // Pick 3 to 6 random cubes to tilt randomly
-        const count = Math.floor(Math.random() * 4) + 3;
+        // Pick 3 to 5 random cubes
+        const count = Math.floor(Math.random() * 3) + 3;
         const shuffled = [...allCubes].sort(() => 0.5 - Math.random());
         const selected = shuffled.slice(0, count);
 
         selected.forEach(cube => {
           const rx = (Math.random() - 0.5) * 44;
           const ry = (Math.random() - 0.5) * 52;
-          const rz = (Math.random() - 0.5) * 12;
+          const rz = (Math.random() - 0.5) * 10;
 
           gsap.to(cube, {
             rotateX: rx,
@@ -359,19 +363,19 @@ const Cubes: React.FC<CubesProps> = ({
             ease: 'power2.out',
             yoyo: true,
             repeat: 1,
-            repeatDelay: 0.6
+            repeatDelay: 0.6,
+            overwrite: 'auto'
           });
         });
       }
     };
 
-    randomTimer = setInterval(triggerRandomRotation, 1800);
+    randomTimer = setInterval(triggerRandomCubes, 1800);
 
     const observer = new IntersectionObserver(([entry]) => {
       isVisible = entry.isIntersecting;
       if (isVisible) {
-        // Trigger initial batch immediately on scroll into view
-        triggerRandomRotation();
+        triggerRandomCubes();
       }
     }, { threshold: 0.1 });
 
