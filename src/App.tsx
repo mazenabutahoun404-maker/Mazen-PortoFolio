@@ -333,25 +333,32 @@ const Cubes: React.FC<CubesProps> = ({
     if (!autoAnimate || !sceneRef.current) return;
 
     let isVisible = false;
+    let time = 0;
     let randomTimer: ReturnType<typeof setInterval> | null = null;
-
-    simPosRef.current = { x: Math.random() * cols, y: Math.random() * rows };
-    simTargetRef.current = { x: Math.random() * cols, y: Math.random() * rows };
-    const speed = 0.02;
 
     const loop = () => {
       const isMobile = window.innerWidth <= 768 || window.matchMedia('(pointer: coarse)').matches;
 
-      // On Mobile: Automatically sweep tiltAt across grid cells smoothly!
+      // On Mobile: Rotate cubes in continuous 3D wave ALL THE TIME!
       if (isVisible && isMobile && sceneRef.current) {
-        const pos = simPosRef.current;
-        const tgt = simTargetRef.current;
-        pos.x += (tgt.x - pos.x) * speed;
-        pos.y += (tgt.y - pos.y) * speed;
-        tiltAt(pos.y, pos.x);
-        if (Math.hypot(pos.x - tgt.x, pos.y - tgt.y) < 0.15) {
-          simTargetRef.current = { x: Math.random() * cols, y: Math.random() * rows };
-        }
+        time += 0.025;
+        const cubes = sceneRef.current.querySelectorAll<HTMLDivElement>('.cube');
+        cubes.forEach(cube => {
+          const r = +cube.dataset.row!;
+          const c = +cube.dataset.col!;
+          const phase = r * 0.8 + c * 1.0;
+
+          const rotX = Math.sin(time + phase) * 20;
+          const rotY = Math.cos(time * 0.85 + phase * 1.2) * 24;
+
+          gsap.to(cube, {
+            duration: 0.5,
+            rotateX: rotX,
+            rotateY: rotY,
+            ease: 'sine.out',
+            overwrite: 'auto'
+          });
+        });
       }
 
       if (isVisible) {
