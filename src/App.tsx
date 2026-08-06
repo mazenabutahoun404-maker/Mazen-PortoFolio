@@ -328,6 +328,35 @@ const Cubes: React.FC<CubesProps> = ({
     if (!autoAnimate || !sceneRef.current) return;
 
     let isVisible = false;
+    let time = 0;
+
+    const loop = () => {
+      if (isVisible && !userActiveRef.current && sceneRef.current) {
+        time += 0.015;
+        const cubes = sceneRef.current.querySelectorAll<HTMLDivElement>('.cube');
+        cubes.forEach(cube => {
+          const r = +cube.dataset.row!;
+          const c = +cube.dataset.col!;
+          const phase = r * 0.6 + c * 0.8;
+
+          // Subtle organic 3D rotation (10-14 degrees max per cube)
+          const rotX = Math.sin(time + phase) * 11;
+          const rotY = Math.cos(time * 0.85 + phase * 1.1) * 13;
+
+          gsap.to(cube, {
+            duration: 0.8,
+            rotateX: rotX,
+            rotateY: rotY,
+            ease: 'sine.out',
+            overwrite: 'auto'
+          });
+        });
+      }
+      if (isVisible) {
+        simRAFRef.current = requestAnimationFrame(loop);
+      }
+    };
+
     const observer = new IntersectionObserver(([entry]) => {
       isVisible = entry.isIntersecting;
       if (!isVisible && simRAFRef.current != null) {
@@ -340,31 +369,11 @@ const Cubes: React.FC<CubesProps> = ({
 
     observer.observe(sceneRef.current);
 
-    simPosRef.current = { x: Math.random() * cols, y: Math.random() * rows };
-    simTargetRef.current = { x: Math.random() * cols, y: Math.random() * rows };
-    const speed = 0.025;
-
-    const loop = () => {
-      if (isVisible && !userActiveRef.current) {
-        const pos = simPosRef.current;
-        const tgt = simTargetRef.current;
-        pos.x += (tgt.x - pos.x) * speed;
-        pos.y += (tgt.y - pos.y) * speed;
-        tiltAt(pos.y, pos.x);
-        if (Math.hypot(pos.x - tgt.x, pos.y - tgt.y) < 0.1) {
-          simTargetRef.current = { x: Math.random() * cols, y: Math.random() * rows };
-        }
-      }
-      if (isVisible) {
-        simRAFRef.current = requestAnimationFrame(loop);
-      }
-    };
-
     return () => {
       observer.disconnect();
       if (simRAFRef.current != null) cancelAnimationFrame(simRAFRef.current);
     };
-  }, [autoAnimate, cols, rows, tiltAt]);
+  }, [autoAnimate]);
 
   useEffect(() => {
     const el = sceneRef.current;
