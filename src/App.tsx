@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-
-declare global { interface Window { THREE: any } }
+import gsap from "gsap";
+import * as THREE from "three";
 
 const SECTION_THEMES = [
   { id: "hero", name: "The Void", color: "#00d4ff", color2: "#7c3aed", bg: "#020408" },
@@ -16,32 +16,30 @@ const SECTION_THEMES = [
 const NAV_LINKS = ["About", "Skills", "Projects", "Experience", "Services", "Contact"];
 
 const SKILLS = [
-  { icon: "⚛", name: "React", cat: "Core Framework" },
-  { icon: "▲", name: "Next.js", cat: "Full Stack" },
-  { icon: "🌀", name: "Three.js", cat: "3D Engine" },
-  { icon: "🎭", name: "Framer Motion", cat: "Animation" },
-  { icon: "⚡", name: "TypeScript", cat: "Language" },
-  { icon: "🎨", name: "Tailwind CSS", cat: "Styling" },
-  { icon: "🔥", name: "GSAP", cat: "Animation" },
-  { icon: "🖥", name: "WebGL", cat: "Graphics" },
-  { icon: "🔷", name: "React Query", cat: "State" },
-  { icon: "📱", name: "Flutter", cat: "Mobile" },
-  { icon: "📦", name: "Vite", cat: "Tooling" },
-  { icon: "🎯", name: "Zustand", cat: "State" },
+  { icon: "⚛", name: "React", cat: "Core Framework", desc: "Building dynamic, component-driven interfaces with blazing-fast virtual DOM rendering." },
+  { icon: "▲", name: "Next.js", cat: "Full Stack", desc: "Server-side rendering, static generation, and API routes for production-grade apps." },
+  { icon: "🌀", name: "Three.js", cat: "3D Engine", desc: "Crafting immersive 3D scenes, custom shaders, and real-time visual experiences on the web." },
+  { icon: "🎭", name: "Framer Motion", cat: "Animation", desc: "Declarative animations and gesture-driven interactions for fluid React interfaces." },
+  { icon: "⚡", name: "TypeScript", cat: "Language", desc: "Type-safe development with enhanced IDE support, catching errors before runtime." },
+  { icon: "🎨", name: "Tailwind CSS", cat: "Styling", desc: "Utility-first CSS for rapid UI development with consistent, responsive design systems." },
+  { icon: "🔥", name: "GSAP", cat: "Animation", desc: "High-performance timeline animations and scroll-driven cinematic sequences." },
+  { icon: "🖥", name: "WebGL", cat: "Graphics", desc: "Low-level GPU-accelerated rendering for custom visual effects and data visualizations." },
+  { icon: "🔷", name: "React Query", cat: "State", desc: "Powerful async state management with caching, background refetching, and pagination." },
+  { icon: "📱", name: "Flutter", cat: "Mobile", desc: "Cross-platform mobile development delivering native performance from a single codebase." },
+  { icon: "📦", name: "Vite", cat: "Tooling", desc: "Lightning-fast build tool with instant HMR and optimized production bundling." },
+  { icon: "🎯", name: "Zustand", cat: "State", desc: "Minimal, flexible state management with zero boilerplate and intuitive API." },
 ];
 
 const PROJECTS = [
-  { emoji: "🧠", bg: "linear-gradient(135deg,#1a0515,#360a2b,#ff3cac33)", tags: ["In Progress", "Mega Project", "Innovation"], name: "Think ", desc: "My biggest endeavor yet. A revolutionary platform currently in active development that aims to redefine standard workflows." },
-  { emoji: "🏥", bg: "linear-gradient(135deg,#0a0f1e,#0d2040,#00d4ff22)", tags: ["React", "TypeScript", "Node.js"], name: "Clinics System", desc: "A comprehensive management system for clinics with appointment scheduling, inventory tracking, and patient records." },
-  { emoji: "🎨", bg: "linear-gradient(135deg,#1a0a2e,#2d1b69,#7c3aed33)", tags: ["React", "Three.js", "GSAP"], name: "Octagram Portfolio", desc: "A stunning, high-performance portfolio showcasing projects with immersive 3D interactions and modern web aesthetics." },
-  { emoji: "🏫", bg: "linear-gradient(135deg,#001a0a,#0a2e1a,#00ff8833)", tags: ["Next.js", "Tailwind CSS", "React"], name: "School Landing Page", desc: "A modern, responsive landing page designed for educational institutions to attract students and provide clear information." },
-  { emoji: "🚀", bg: "linear-gradient(135deg,#111,#222,#55555533)", tags: ["Diverse", "Continuous", "Expanding"], name: "...And Many More", desc: "Numerous other private and public projects, ranging from small utility scripts to full-stack enterprise applications." },
+  { emoji: "🧠", bg: "linear-gradient(135deg,#1a0515,#360a2b,#ff3cac33)", tags: ["Flagship", "In Progress", "Mega Project"], name: "Think", desc: "My biggest endeavor yet. A revolutionary platform currently in active development that aims to redefine standard workflows." },
+  { emoji: "🏥", bg: "linear-gradient(135deg,#0a0f1e,#0d2040,#00d4ff22)", tags: ["Major System", "React", "TypeScript"], name: "Clinics System", desc: "A comprehensive management system for clinics with appointment scheduling, inventory tracking, and patient records." },
+  { emoji: "🎨", bg: "linear-gradient(135deg,#1a0a2e,#2d1b69,#7c3aed33)", tags: ["Flagship UI", "Three.js", "GSAP"], name: "Octagram Portfolio", desc: "A stunning, high-performance portfolio showcasing projects with immersive 3D interactions and modern web aesthetics." },
 ];
 
 const TIMELINE = [
   { date: "Present", company: "Octagram Team", role: "Founder & CTO ", desc: "Established the Octagram development team to deliver high-quality software solutions, focusing on modern aesthetics and robust systems." },
   { date: "Present", company: "University", role: "2nd Year Student", desc: "Currently in my second year of university, actively balancing academic studies with professional software development." },
-  { date: "Past", company: "SMT Group Company", role: "Software Developer", desc: "Worked for 6 months on building and maintaining web applications, refining system implementations and optimizing frontend performance." },
+  { date: "Past", company: "SMT Group Company", role: "Software Developer", desc: "Worked for a year on building and maintaining web applications, refining system implementations and optimizing frontend performance." },
 ];
 
 const SERVICES = [
@@ -54,10 +52,10 @@ const SERVICES = [
 ];
 
 const SOCIALS = [
-  { icon: "✉", name: "Email", url: "#contact" },
-  { icon: "in", name: "LinkedIn", url: "https://www.linkedin.com/in/mazen-abutahoun-7273b5235/" },
-  { icon: "⌥", name: "GitHub", url: "https://github.com/mazenabutahoun404-maker" },
-  { icon: "✦", name: "Instagram", url: "https://www.instagram.com/mazen_abutahoun/" },
+  { icon: "✉", name: "Email", url: "#contact", color: "#ff6b35" },
+  { icon: "in", name: "LinkedIn", url: "https://www.linkedin.com/in/mazen-abutahoun-7273b5235/", color: "#00d4ff" },
+  { icon: "⌥", name: "GitHub", url: "https://github.com/mazenabutahoun404-maker", color: "#00ff88" },
+  { icon: "✦", name: "Instagram", url: "https://www.instagram.com/mazen_abutahoun/", color: "#ff3cac" },
 ];
 
 function useInView(threshold = 0.1) {
@@ -101,6 +99,410 @@ function GDiv({ light }: { light: boolean }) {
   return <div style={{ height: 1, background: light ? "linear-gradient(90deg,transparent,rgba(0,0,0,.15),transparent)" : "linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent)" }} />;
 }
 
+/* ─── Customized GSAP 3D Cubes Component for Tech Arsenal ─── */
+interface CubesProps {
+  cols?: number;
+  rows?: number;
+  maxAngle?: number;
+  radius?: number;
+  cellGap?: number;
+  borderStyle?: string;
+  faceColor?: string;
+  rippleColor?: string;
+  rippleSpeed?: number;
+  autoAnimate?: boolean;
+  rippleOnClick?: boolean;
+  skills?: { icon: string; name: string; cat: string; desc: string }[];
+  accentColor?: string;
+  textPri?: string;
+  light?: boolean;
+}
+
+const Cubes: React.FC<CubesProps> = ({
+  cols = 6,
+  rows = 4,
+  maxAngle = 48,
+  radius = 2.5,
+  cellGap = 34,
+  borderStyle = '2px dashed rgba(0, 255, 136, 0.65)',
+  faceColor = 'rgba(8, 28, 18, 0.95)',
+  rippleColor = '#00ff88',
+  rippleSpeed = 1.5,
+  autoAnimate = true,
+  rippleOnClick = true,
+  skills = [],
+  accentColor = '#00ff88',
+  textPri = '#ffffff',
+  light = false
+}) => {
+  const sceneRef = useRef<HTMLDivElement | null>(null);
+  const rafRef = useRef<number | null>(null);
+  const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const userActiveRef = useRef(false);
+  const simPosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const simTargetRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const simRAFRef = useRef<number | null>(null);
+
+  const skillPositions = useRef<Map<number, typeof skills[0]>>(new Map());
+  if (skillPositions.current.size === 0 && skills.length > 0) {
+    const totalCells = cols * rows;
+    const positions = [0, 1, 3, 4, 6, 8, 10, 11, 13, 15, 17, 19, 21, 22];
+    skills.forEach((skill, i) => {
+      if (i < positions.length) {
+        skillPositions.current.set(positions[i], skill);
+      }
+    });
+  }
+
+  const tiltAt = useCallback(
+    (rowCenter: number, colCenter: number) => {
+      if (!sceneRef.current) return;
+      sceneRef.current.querySelectorAll<HTMLDivElement>('.cube').forEach(cube => {
+        const r = +cube.dataset.row!;
+        const c = +cube.dataset.col!;
+        const dist = Math.hypot(r - rowCenter, c - colCenter);
+        if (dist <= radius) {
+          const colDiff = colCenter - c;
+          const rowDiff = rowCenter - r;
+          const rotY = (colDiff / radius) * maxAngle;
+          const rotX = -(rowDiff / radius) * maxAngle;
+
+          gsap.to(cube, {
+            duration: 1.4,
+            ease: 'power2.out',
+            overwrite: 'auto',
+            rotateX: rotX,
+            rotateY: rotY,
+            scale: 1,
+            z: 0
+          });
+        } else {
+          gsap.to(cube, {
+            duration: 1.8,
+            ease: 'power2.out',
+            overwrite: 'auto',
+            rotateX: 0,
+            rotateY: 0,
+            scale: 1,
+            z: 0
+          });
+        }
+      });
+    },
+    [radius, maxAngle]
+  );
+
+  const onPointerMove = useCallback(
+    (e: PointerEvent) => {
+      userActiveRef.current = true;
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+
+      const rect = sceneRef.current!.getBoundingClientRect();
+      const cellW = rect.width / cols;
+      const cellH = rect.height / rows;
+      const colCenter = (e.clientX - rect.left) / cellW;
+      const rowCenter = (e.clientY - rect.top) / cellH;
+
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(() => tiltAt(rowCenter, colCenter));
+
+      idleTimerRef.current = setTimeout(() => {
+        userActiveRef.current = false;
+      }, 3500);
+    },
+    [cols, rows, tiltAt]
+  );
+
+  const resetAll = useCallback(() => {
+    if (!sceneRef.current) return;
+    sceneRef.current.querySelectorAll<HTMLDivElement>('.cube').forEach(cube =>
+      gsap.to(cube, {
+        duration: 1.8,
+        rotateX: 0,
+        rotateY: 0,
+        scale: 1,
+        z: 0,
+        ease: 'power2.out',
+        overwrite: 'auto'
+      })
+    );
+  }, []);
+
+  const onTouchMove = useCallback(
+    (e: TouchEvent) => {
+      e.preventDefault();
+      userActiveRef.current = true;
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+
+      const rect = sceneRef.current!.getBoundingClientRect();
+      const cellW = rect.width / cols;
+      const cellH = rect.height / rows;
+
+      const touch = e.touches[0];
+      const colCenter = (touch.clientX - rect.left) / cellW;
+      const rowCenter = (touch.clientY - rect.top) / cellH;
+
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(() => tiltAt(rowCenter, colCenter));
+
+      idleTimerRef.current = setTimeout(() => {
+        userActiveRef.current = false;
+      }, 3000);
+    },
+    [cols, rows, tiltAt]
+  );
+
+  const onClick = useCallback(
+    (e: MouseEvent | TouchEvent) => {
+      if (!rippleOnClick || !sceneRef.current) return;
+      const rect = sceneRef.current.getBoundingClientRect();
+      const cellW = rect.width / cols;
+      const cellH = rect.height / rows;
+
+      const clientX = (e as MouseEvent).clientX || ((e as TouchEvent).touches && (e as TouchEvent).touches[0] && (e as TouchEvent).touches[0].clientX);
+      const clientY = (e as MouseEvent).clientY || ((e as TouchEvent).touches && (e as TouchEvent).touches[0] && (e as TouchEvent).touches[0].clientY);
+
+      if (!clientX || !clientY) return;
+
+      const colHit = Math.floor((clientX - rect.left) / cellW);
+      const rowHit = Math.floor((clientY - rect.top) / cellH);
+
+      const spreadDelay = 0.08 / rippleSpeed;
+      const animDuration = 0.25 / rippleSpeed;
+      const holdTime = 0.25 / rippleSpeed;
+
+      const rings: Record<number, HTMLDivElement[]> = {};
+      sceneRef.current.querySelectorAll<HTMLDivElement>('.cube').forEach(cube => {
+        const r = +cube.dataset.row!;
+        const c = +cube.dataset.col!;
+        const dist = Math.hypot(r - rowHit, c - colHit);
+        const ring = Math.round(dist);
+        if (!rings[ring]) rings[ring] = [];
+        rings[ring].push(cube);
+      });
+
+      const normalBg = light
+        ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(230, 255, 240, 0.94))'
+        : 'linear-gradient(135deg, #0e2a1b, #071c11)';
+      const normalShadow = light
+        ? '0 4px 15px rgba(0,0,0,0.06), inset 0 0 12px rgba(0,180,100,0.15)'
+        : `0 6px 20px rgba(0,0,0,0.7), 0 0 15px ${accentColor}25, inset 0 0 12px ${accentColor}25`;
+      const normalBorder = light ? '2px dashed rgba(0, 180, 100, 0.8)' : `2px dashed ${accentColor}dd`;
+
+      Object.keys(rings)
+        .map(Number)
+        .sort((a, b) => a - b)
+        .forEach(ring => {
+          const delay = ring * spreadDelay;
+          const cubesInRing = rings[ring];
+          // Target side faces only (indices 0, 1, 2, 3, 5 - excluding index 4 front face)
+          const sideFaces = cubesInRing.flatMap(cube => {
+            const faces = Array.from(cube.querySelectorAll<HTMLElement>('.cube-face'));
+            return faces.filter((_, idx) => idx !== 4);
+          });
+
+          gsap.to(sideFaces, {
+            background: rippleColor,
+            borderColor: rippleColor,
+            duration: animDuration,
+            delay,
+            ease: 'power2.out'
+          });
+          gsap.to(sideFaces, {
+            background: normalBg,
+            borderColor: normalBorder,
+            duration: animDuration * 1.5,
+            delay: delay + animDuration + holdTime,
+            ease: 'power3.out'
+          });
+        });
+    },
+    [rippleOnClick, cols, rows, accentColor, rippleColor, rippleSpeed, light]
+  );
+
+  useEffect(() => {
+    if (!autoAnimate || !sceneRef.current) return;
+    simPosRef.current = { x: Math.random() * cols, y: Math.random() * rows };
+    simTargetRef.current = { x: Math.random() * cols, y: Math.random() * rows };
+    const speed = 0.025;
+    const loop = () => {
+      if (!userActiveRef.current) {
+        const pos = simPosRef.current;
+        const tgt = simTargetRef.current;
+        pos.x += (tgt.x - pos.x) * speed;
+        pos.y += (tgt.y - pos.y) * speed;
+        tiltAt(pos.y, pos.x);
+        if (Math.hypot(pos.x - tgt.x, pos.y - tgt.y) < 0.1) {
+          simTargetRef.current = { x: Math.random() * cols, y: Math.random() * rows };
+        }
+      }
+      simRAFRef.current = requestAnimationFrame(loop);
+    };
+    simRAFRef.current = requestAnimationFrame(loop);
+    return () => {
+      if (simRAFRef.current != null) cancelAnimationFrame(simRAFRef.current);
+    };
+  }, [autoAnimate, cols, rows, tiltAt]);
+
+  useEffect(() => {
+    const el = sceneRef.current;
+    if (!el) return;
+    el.addEventListener('pointermove', onPointerMove);
+    el.addEventListener('pointerleave', resetAll);
+    el.addEventListener('click', onClick);
+
+    el.addEventListener('touchmove', onTouchMove, { passive: false });
+    el.addEventListener('touchend', resetAll, { passive: true });
+
+    return () => {
+      el.removeEventListener('pointermove', onPointerMove);
+      el.removeEventListener('pointerleave', resetAll);
+      el.removeEventListener('click', onClick);
+      el.removeEventListener('touchmove', onTouchMove);
+      el.removeEventListener('touchend', resetAll);
+
+      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+      if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    };
+  }, [onPointerMove, resetAll, onClick, onTouchMove]);
+
+  const unifiedFaceStyle: React.CSSProperties = {
+    background: light
+      ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(230, 255, 240, 0.94))'
+      : 'linear-gradient(135deg, #0e2a1b, #071c11)',
+    border: light
+      ? '2px dashed rgba(0, 180, 100, 0.8)'
+      : `2px dashed ${accentColor}dd`,
+    boxShadow: light
+      ? '0 4px 15px rgba(0,0,0,0.06), inset 0 0 12px rgba(0,180,100,0.15)'
+      : `0 6px 20px rgba(0,0,0,0.7), 0 0 15px ${accentColor}25, inset 0 0 12px ${accentColor}25`,
+    backfaceVisibility: 'hidden',
+  };
+
+  return (
+    <div className="w-full flex justify-center items-center py-4">
+      <div
+        ref={sceneRef}
+        className="cubes-custom-grid"
+        style={{
+          display: 'grid',
+          gridTemplateColumns: `repeat(${cols}, 70px)`,
+          gridTemplateRows: `repeat(${rows}, 70px)`,
+          gap: `${cellGap}px`,
+          justifyContent: 'center',
+          perspective: '1000px',
+          margin: '0 auto',
+        }}
+      >
+        {Array.from({ length: rows }).map((_, r) =>
+          Array.from({ length: cols }).map((__, c) => {
+            const index = r * cols + c;
+            const skill = skillPositions.current.get(index);
+
+            return (
+              <div
+                key={`${r}-${c}`}
+                className="cube relative w-[70px] h-[70px] aspect-square [transform-style:preserve-3d] cursor-pointer"
+                data-row={r}
+                data-col={c}
+              >
+                {/* Top face */}
+                <div
+                  className="cube-face absolute inset-0 flex items-center justify-center rounded-lg"
+                  style={{
+                    ...unifiedFaceStyle,
+                    transform: 'translateY(-50%) rotateX(90deg)',
+                  }}
+                />
+                {/* Bottom face */}
+                <div
+                  className="cube-face absolute inset-0 flex items-center justify-center rounded-lg"
+                  style={{
+                    ...unifiedFaceStyle,
+                    transform: 'translateY(50%) rotateX(-90deg)',
+                  }}
+                />
+                {/* Left face */}
+                <div
+                  className="cube-face absolute inset-0 flex items-center justify-center rounded-lg"
+                  style={{
+                    ...unifiedFaceStyle,
+                    transform: 'translateX(-50%) rotateY(-90deg)',
+                  }}
+                />
+                {/* Right face */}
+                <div
+                  className="cube-face absolute inset-0 flex items-center justify-center rounded-lg"
+                  style={{
+                    ...unifiedFaceStyle,
+                    transform: 'translateX(50%) rotateY(90deg)',
+                  }}
+                />
+                {/* Front face (Solid Unified Face + Bright Logos) */}
+                <div
+                  className="cube-face absolute inset-0 flex flex-col items-center justify-center rounded-lg select-none p-1.5 transition-all duration-300 z-10"
+                  style={{
+                    ...unifiedFaceStyle,
+                    transform: 'rotateY(-90deg) translateX(50%) rotateY(90deg) translateZ(1px)',
+                  }}
+                >
+                  {skill ? (
+                    <>
+                      <div
+                        style={{
+                          fontSize: '1.85rem',
+                          marginBottom: '.15rem',
+                          filter: `drop-shadow(0 0 8px ${accentColor}) drop-shadow(0 0 16px ${accentColor}aa)`,
+                          color: '#ffffff'
+                        }}
+                      >
+                        {skill.icon}
+                      </div>
+                      <div style={{
+                        fontFamily: "'Orbitron', sans-serif",
+                        fontSize: '.65rem',
+                        letterSpacing: '.05em',
+                        fontWeight: 900,
+                        color: light ? '#04140b' : '#ffffff',
+                        textAlign: 'center',
+                        lineHeight: 1.1,
+                        textShadow: light ? 'none' : `0 0 10px ${accentColor}aa, 0 1px 3px #000000`
+                      }}>
+                        {skill.name}
+                      </div>
+                      <div style={{
+                        fontSize: '.42rem',
+                        color: light ? '#007a3d' : accentColor,
+                        letterSpacing: '.12em',
+                        textTransform: 'uppercase',
+                        marginTop: '.12rem',
+                        fontWeight: 800,
+                        textShadow: light ? 'none' : `0 0 8px ${accentColor}`
+                      }}>
+                        {skill.cat}
+                      </div>
+                    </>
+                  ) : (
+                    <div style={{ width: 7, height: 7, borderRadius: '50%', background: accentColor, boxShadow: `0 0 12px ${accentColor}` }} />
+                  )}
+                </div>
+                {/* Back face */}
+                <div
+                  className="cube-face absolute inset-0 flex items-center justify-center rounded-lg"
+                  style={{
+                    ...unifiedFaceStyle,
+                    transform: 'rotateY(90deg) translateX(-50%) rotateY(-90deg)',
+                  }}
+                />
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+};
+
 export default function App() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const cursorRef = useRef<HTMLDivElement>(null);
@@ -126,11 +528,11 @@ export default function App() {
 
   // ── Three.js ─────────────────────────────────────────────────────
   useEffect(() => {
-    const s = document.createElement("script");
-    s.src = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
-    s.onload = () => initThree();
-    document.head.appendChild(s);
-    return () => { try { document.head.removeChild(s); } catch { } };
+    if (!canvasRef.current) return;
+    const cleanupThree = initThree();
+    return () => {
+      if (cleanupThree) cleanupThree();
+    };
   }, []);
 
   function NavLogo({ ac, ac2 }: { ac: string; ac2: string }) {
@@ -168,9 +570,9 @@ export default function App() {
   }
 
   function initThree() {
-    const THREE = window.THREE;
     const canvas = canvasRef.current!;
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
+    renderer.debug.checkShaderErrors = false;
     renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
     renderer.setSize(innerWidth, innerHeight);
 
@@ -443,9 +845,10 @@ export default function App() {
     addEventListener("mousemove", onMouse); addEventListener("scroll", onScroll); addEventListener("resize", onResize);
 
     let alive = true;
+    let rafId: number | null = null;
     (function loop() {
       if (!alive) return;
-      requestAnimationFrame(loop);
+      rafId = requestAnimationFrame(loop);
       const t = Date.now() * .001;
 
       // Camera travel
@@ -532,10 +935,22 @@ export default function App() {
       accretionRings.forEach(r => { r.rotation.z += r.userData.speed * (Math.random() > .5 ? 1 : -1); r.rotation.x = Math.PI / 2 + Math.sin(t * .3 + r.userData.phase) * .06; });
       ehLight.intensity = 4 + 3 * Math.sin(t * 2.5);
 
-      renderer.render(scene, camera);
+      try {
+        renderer.render(scene, camera);
+      } catch { }
     })();
 
-    return () => { alive = false; removeEventListener("mousemove", onMouse); removeEventListener("scroll", onScroll); removeEventListener("resize", onResize); renderer.dispose(); };
+    return () => {
+      alive = false;
+      if (rafId) cancelAnimationFrame(rafId);
+      removeEventListener("mousemove", onMouse);
+      removeEventListener("scroll", onScroll);
+      removeEventListener("resize", onResize);
+      try {
+        scene.clear();
+        renderer.dispose();
+      } catch { }
+    };
   }
 
   // ── cursor ────────────────────────────────────────────────────────
@@ -591,6 +1006,7 @@ export default function App() {
         @keyframes warpFly { 0%{transform:translateZ(-8px) scale(.3);opacity:0} 100%{transform:translateZ(0) scale(1);opacity:1} }
         @keyframes pulse { 0%,100%{opacity:.6;transform:scale(1)} 50%{opacity:1;transform:scale(1.1)} }
         @keyframes heroGradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
 
         .orbit-1 { animation: orbitSpin 8s linear infinite; }
         .orbit-2 { animation: orbitSpin 14s linear infinite reverse; }
@@ -777,7 +1193,7 @@ export default function App() {
         <div style={{ position: "relative", zIndex: 1, maxWidth: 800, margin: "0 auto" }}>
           <div style={{ ...heroT(.05), display: "inline-flex", alignItems: "center", gap: ".5rem", marginBottom: "1.5rem", padding: ".32rem 1rem", borderRadius: 50, border: `1px solid ${SECTION_THEMES[0].color}35`, background: `${SECTION_THEMES[0].color}0a`, fontFamily: "'Orbitron',sans-serif", fontSize: ".58rem", letterSpacing: ".28em", color: SECTION_THEMES[0].color, textTransform: "uppercase" }}>
             <span className="availability-dot" style={{ width: 5, height: 5, borderRadius: "50%", background: SECTION_THEMES[0].color, boxShadow: `0 0 8px ${SECTION_THEMES[0].color}`, display: "inline-block" }} />
-            Available for projects
+            Architect of the Future Web
           </div>
           <div style={{ ...heroT(.2), fontFamily: "'Orbitron',sans-serif", fontSize: ".68rem", letterSpacing: ".45em", color: SECTION_THEMES[0].color, textTransform: "uppercase", marginBottom: ".9rem" }}>
             Senior Frontend Engineer
@@ -813,9 +1229,7 @@ export default function App() {
           <p style={{ ...heroT(.6), fontSize: "clamp(.9rem,2.5vw,1.25rem)", color: light ? "rgba(10,15,46,.6)" : "rgba(255,255,255,.5)", marginBottom: "2rem", letterSpacing: ".04em", maxWidth: 520, margin: "0 auto 2rem" }}>
             Crafting Digital Universes &amp; Immersive Experiences
           </p>
-          <div style={{ ...heroT(.78), fontFamily: "'Orbitron',sans-serif", fontSize: ".72rem", letterSpacing: ".35em", color: SECTION_THEMES[0].color, border: `1px solid ${SECTION_THEMES[0].color}40`, padding: ".58rem 1.8rem", borderRadius: 50, background: `${SECTION_THEMES[0].color}08`, display: "inline-block", marginBottom: "2.2rem" }}>
-            Architect of the Future Web
-          </div>
+
           <div className="hero-cta" style={{ ...heroT(.95), display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
             <a href="#projects" style={{ display: "inline-block", padding: ".82rem 2rem", borderRadius: 50, background: `linear-gradient(135deg,${SECTION_THEMES[0].color},${SECTION_THEMES[0].color2})`, color: "#fff", fontFamily: "'Orbitron',sans-serif", fontSize: ".68rem", letterSpacing: ".18em", textTransform: "uppercase", fontWeight: 700, textDecoration: "none", transition: "transform .3s, box-shadow .3s" }}
               onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = "translateY(-3px)"; (e.currentTarget as HTMLElement).style.boxShadow = `0 12px 35px ${SECTION_THEMES[0].color}45`; }}
@@ -853,7 +1267,7 @@ export default function App() {
             <p style={{ color: textSec, lineHeight: 1.95, marginBottom: "1.4rem", fontSize: "1rem" }}>I am Mazen Abutahoun — a Senior Frontend Engineer who builds experiences that transcend conventional web design. I don't just write code; I architect digital worlds that breathe, react, and inspire.</p>
             <p style={{ color: textSec, lineHeight: 1.95, fontSize: "1rem" }}>With deep expertise across the modern frontend stack, I bridge engineering precision with creative artistry — crafting interfaces that feel alive, intelligent, and genuinely unforgettable.</p>
             <div className="stat-row" style={{ display: "flex", gap: "2.5rem", marginTop: "2.2rem" }}>
-              {[["1+", "Years"], ["5+", "Projects"], ["∞", "Ambition"]].map(([n, l]) => (
+              {[["2+", "Years"], ["10+", "Projects"], ["∞", "Ambition"]].map(([n, l]) => (
                 <div key={l} style={{ textAlign: "center" }}>
                   <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: "2.3rem", fontWeight: 900, background: gradH(SECTION_THEMES[1].color, SECTION_THEMES[1].color2), WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{n}</div>
                   <div style={{ fontSize: ".68rem", letterSpacing: ".2em", color: textMut, textTransform: "uppercase", marginTop: ".28rem" }}>{l}</div>
@@ -887,24 +1301,25 @@ export default function App() {
           <SpaceIn delay={.1}>
             <h2 style={{ fontFamily: "'Orbitron',sans-serif", fontSize: "clamp(1.9rem,5vw,3.1rem)", fontWeight: 900, background: gradH(SECTION_THEMES[2].color, SECTION_THEMES[2].color2), WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: "2.5rem" }}>Skill Matrix</h2>
           </SpaceIn>
-          <div className="skills-grid-inner" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(185px,1fr))", gap: "1.1rem" }}>
-            {SKILLS.map((s, i) => (
-              <SpaceIn key={s.name} delay={i * .045}>
-                <div className="card-hover" style={{ borderRadius: 12, textAlign: "center", padding: "1.4rem 1rem", cursor: "pointer", overflow: "hidden", position: "relative", background: light ? "rgba(255,255,255,.8)" : "rgba(0,255,136,.025)", border: `1px solid ${SECTION_THEMES[2].color}20`, backdropFilter: light ? "blur(10px)" : "none" }}
-                  onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = SECTION_THEMES[2].color; el.style.boxShadow = `0 0 28px ${SECTION_THEMES[2].color}25`; el.style.background = light ? "rgba(255,255,255,.95)" : `${SECTION_THEMES[2].color}0d`; }}
-                  onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.borderColor = `${SECTION_THEMES[2].color}20`; el.style.boxShadow = "none"; el.style.background = light ? "rgba(255,255,255,.8)" : "rgba(0,255,136,.025)"; }}
-                >
-                  <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg,transparent,${SECTION_THEMES[2].color},transparent)`, opacity: .5 }} />
-                  <div style={{ fontSize: "2rem", marginBottom: ".7rem" }}>{s.icon}</div>
-                  <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: ".72rem", letterSpacing: ".12em", fontWeight: 700, color: textPri }}>{s.name}</div>
-                  <div style={{ fontSize: ".58rem", color: SECTION_THEMES[2].color, letterSpacing: ".18em", textTransform: "uppercase", marginTop: ".3rem" }}>{s.cat}</div>
-                  <div style={{ height: 1, background: light ? "rgba(0,0,0,.1)" : "rgba(255,255,255,.08)", borderRadius: 1, marginTop: ".9rem", overflow: "hidden" }}>
-                    <div style={{ height: "100%", background: `linear-gradient(90deg,${SECTION_THEMES[2].color},${SECTION_THEMES[2].color2})`, width: "0%", transition: "width 1s ease", borderRadius: 1 }} />
-                  </div>
-                </div>
-              </SpaceIn>
-            ))}
-          </div>
+          <SpaceIn delay={.2}>
+            <Cubes
+              cols={6}
+              rows={4}
+              maxAngle={48}
+              radius={2.5}
+              cellGap={34}
+              borderStyle={light ? "2px dashed rgba(0, 180, 100, 0.65)" : `2px dashed ${SECTION_THEMES[2].color}aa`}
+              faceColor={light ? "rgba(240, 255, 245, 0.95)" : "rgba(8, 28, 18, 0.95)"}
+              rippleColor={SECTION_THEMES[2].color}
+              rippleSpeed={1.5}
+              autoAnimate
+              rippleOnClick
+              skills={SKILLS}
+              accentColor={SECTION_THEMES[2].color}
+              textPri={textPri}
+              light={light}
+            />
+          </SpaceIn>
         </div>
       </section>
 
@@ -916,9 +1331,10 @@ export default function App() {
           ✦ Entering {SECTION_THEMES[3].name} ✦
         </div>
         <div style={{ maxWidth: 1100, margin: "0 auto", width: "100%" }}>
-          <SpaceIn><SL color={SECTION_THEMES[3].color}>Digital Realms</SL></SpaceIn>
+          <SpaceIn><SL color={SECTION_THEMES[3].color}>Flagship Endeavors</SL></SpaceIn>
           <SpaceIn delay={.1}>
-            <h2 style={{ fontFamily: "'Orbitron',sans-serif", fontSize: "clamp(1.9rem,5vw,3.1rem)", fontWeight: 900, background: `linear-gradient(135deg,${SECTION_THEMES[3].color},${SECTION_THEMES[3].color2})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: "2.5rem" }}>Featured Works</h2>
+            <h2 style={{ fontFamily: "'Orbitron',sans-serif", fontSize: "clamp(1.9rem,5vw,3.1rem)", fontWeight: 900, background: `linear-gradient(135deg,${SECTION_THEMES[3].color},${SECTION_THEMES[3].color2})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: ".6rem" }}>Major Projects</h2>
+            <p style={{ color: textSec, fontSize: ".88rem", marginBottom: "2.5rem", maxWidth: 620, lineHeight: 1.6 }}>A curated selection of my primary, large-scale systems and flagship engineering projects.</p>
           </SpaceIn>
           <div className="projects-grid-inner" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(300px,1fr))", gap: "1.6rem" }}>
             {PROJECTS.map((p, i) => (
@@ -1075,9 +1491,17 @@ export default function App() {
 
           <div style={{ display: "flex", justifyContent: "center", gap: "1.8rem", marginTop: "2.2rem", flexWrap: "wrap" }}>
             {SOCIALS.map(l => (
-              <a key={l.name} href={l.url} target={l.name.toLowerCase() === "email" ? "_self" : "_blank"} style={{ color: textMut, fontSize: ".72rem", letterSpacing: ".18em", textTransform: "uppercase", textDecoration: "none", transition: "color .3s" }}
-                onMouseEnter={e => e.currentTarget.style.color = SECTION_THEMES[6].color}
-                onMouseLeave={e => e.currentTarget.style.color = textMut}
+              <a key={l.name} href={l.url} target={l.name.toLowerCase() === "email" ? "_self" : "_blank"} style={{ color: textMut, fontSize: ".72rem", letterSpacing: ".18em", textTransform: "uppercase", textDecoration: "none", transition: "color .3s, text-shadow .3s, transform .3s", display: "inline-block" }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.color = l.color;
+                  e.currentTarget.style.textShadow = `0 0 12px ${l.color}aa`;
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.color = textMut;
+                  e.currentTarget.style.textShadow = "none";
+                  e.currentTarget.style.transform = "";
+                }}
               >{l.icon} {l.name}</a>
             ))}
           </div>
@@ -1093,6 +1517,20 @@ export default function App() {
         @media (max-width: 768px) {
           .mobile-theme-btn { display: block !important; }
           .nav-desktop { display: none !important; }
+        }
+        @media (max-width: 768px) {
+          .cubes-custom-grid {
+            grid-template-columns: repeat(4, 68px) !important;
+            grid-template-rows: repeat(6, 68px) !important;
+            gap: 22px !important;
+          }
+        }
+        @media (max-width: 520px) {
+          .cubes-custom-grid {
+            grid-template-columns: repeat(3, 65px) !important;
+            grid-template-rows: repeat(8, 65px) !important;
+            gap: 18px !important;
+          }
         }
       `}</style>
     </>
