@@ -1081,12 +1081,26 @@ export default function App() {
           .nav-desktop { display: none !important; }
           .hamburger { display: flex; }
           .mobile-menu {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 200;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2rem;
-            background: ${light ? "rgba(232,238,255,.97)" : "rgba(2,4,8,.97)"};
-            backdrop-filter: blur(24px);
-            transform: ${menuOpen ? "translateX(0)" : "translateX(100%)"};
-            transition: transform .4s cubic-bezier(.16,1,.3,1);
+            position: fixed;
+            top: 4.8rem;
+            left: 1rem;
+            right: 1rem;
+            max-width: 420px;
+            margin: 0 auto;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: .35rem;
+            padding: 1rem;
+            border-radius: 1.25rem;
+            background: ${light ? "rgba(255,255,255,.94)" : "rgba(8,12,22,.94)"};
+            backdrop-filter: blur(28px);
+            border: 1px solid ${ac}35;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.7), 0 0 25px ${ac}20;
+            transform: ${menuOpen ? "translateY(0) scale(1)" : "translateY(-12px) scale(0.96)"};
+            opacity: ${menuOpen ? 1 : 0};
+            pointer-events: ${menuOpen ? "auto" : "none"};
+            transition: all .35s cubic-bezier(.16,1,.3,1);
           }
           .section-nav { display: none !important; }
           .stat-row { gap: 1.5rem !important; }
@@ -1182,23 +1196,75 @@ export default function App() {
         ))}
       </div>
 
-      {/* ════ NAV ══════════════════════════════════════════════════ */}
-      <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "1rem 2rem", backdropFilter: "blur(24px)", background: navBg, borderBottom: `1px solid ${ac}18`, transition: "background 1s ease, border-color .8s ease" }}>
-
+      {/* ════ NAV — Floating Cyber Capsule Island ═════════════════ */}
+      <nav style={{
+        position: "fixed",
+        top: "1rem",
+        left: "50%",
+        transform: "translateX(-50%)",
+        width: "min(1100px, calc(100% - 2rem))",
+        zIndex: 1000,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        padding: ".6rem 1.4rem",
+        borderRadius: 50,
+        backdropFilter: "blur(28px)",
+        background: light ? "rgba(255, 255, 255, 0.85)" : "rgba(6, 10, 18, 0.82)",
+        border: `1px solid ${ac}35`,
+        boxShadow: `0 10px 40px rgba(0,0,0,0.5), 0 0 20px ${ac}18`,
+        transition: "all .6s ease"
+      }}>
         <NavLogo ac={ac} ac2={ac2} />
 
         {/* desktop links */}
-        <div className="nav-desktop" style={{ display: "flex", alignItems: "center", gap: "1.5rem" }}>
-          <ul style={{ display: "flex", gap: "1.8rem", listStyle: "none" }}>
-            {NAV_LINKS.map(l => (
-              <li key={l}>
-                <a href={`#${l.toLowerCase()}`} style={{ textDecoration: "none", color: textSec, fontSize: ".72rem", letterSpacing: ".15em", textTransform: "uppercase", transition: "color .3s", fontFamily: "'Space Grotesk',sans-serif" }}
-                  onMouseEnter={e => e.currentTarget.style.color = ac}
-                  onMouseLeave={e => e.currentTarget.style.color = textSec}
-                >{l}</a>
-              </li>
-            ))}
+        <div className="nav-desktop" style={{ display: "flex", alignItems: "center", gap: "1.2rem" }}>
+          <ul style={{ display: "flex", gap: ".4rem", listStyle: "none" }}>
+            {NAV_LINKS.map((l, i) => {
+              const isAct = activeSection === i;
+              return (
+                <li key={l}>
+                  <a href={`#${l.toLowerCase()}`}
+                    style={{
+                      textDecoration: "none",
+                      color: isAct ? ac : textSec,
+                      fontSize: ".7rem",
+                      letterSpacing: ".12em",
+                      textTransform: "uppercase",
+                      padding: ".35rem .75rem",
+                      borderRadius: 30,
+                      background: isAct ? `${ac}15` : "transparent",
+                      border: isAct ? `1px solid ${ac}35` : "1px solid transparent",
+                      boxShadow: isAct ? `0 0 12px ${ac}20` : "none",
+                      transition: "all .3s ease",
+                      fontFamily: "'Space Grotesk',sans-serif",
+                      fontWeight: isAct ? 600 : 400,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: ".3rem"
+                    }}
+                    onMouseEnter={e => {
+                      if (!isAct) {
+                        e.currentTarget.style.color = ac;
+                        e.currentTarget.style.background = `${ac}0a`;
+                      }
+                    }}
+                    onMouseLeave={e => {
+                      if (!isAct) {
+                        e.currentTarget.style.color = textSec;
+                        e.currentTarget.style.background = "transparent";
+                      }
+                    }}
+                  >
+                    <span style={{ fontSize: ".5rem", opacity: .5, fontFamily: "'Orbitron',sans-serif" }}>0{i + 1}</span>
+                    {l}
+                  </a>
+                </li>
+              );
+            })}
           </ul>
+
+          <div style={{ width: 1, height: 16, background: `${ac}30`, margin: "0 .2rem" }} />
 
           <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: ".52rem", letterSpacing: ".22em", color: ac, border: `1px solid ${ac}35`, padding: ".28rem .7rem", borderRadius: 50, textTransform: "uppercase", display: "flex", alignItems: "center", gap: ".4rem", transition: "color .8s, border-color .8s" }}>
             <div className="zone-dot" style={{ width: 5, height: 5, borderRadius: "50%", background: ac, boxShadow: `0 0 6px ${ac}` }} />
@@ -1223,17 +1289,38 @@ export default function App() {
         </div>
       </nav>
 
-      {/* mobile menu */}
+      {/* mobile menu (floating glass dropdown card) */}
       <div className="mobile-menu">
-        <button onClick={() => setMenuOpen(false)} style={{ position: "absolute", top: "1.5rem", right: "1.5rem", background: "transparent", border: "none", cursor: "pointer", fontFamily: "'Orbitron',sans-serif", fontSize: ".7rem", letterSpacing: ".2em", color: ac }}>✕ Close</button>
-        {NAV_LINKS.map(l => (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: ".5rem", paddingBottom: ".5rem", borderBottom: `1px solid ${ac}20` }}>
+          <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: ".6rem", letterSpacing: ".2em", color: ac, textTransform: "uppercase" }}>Navigation</span>
+          <button onClick={() => setLight(v => !v)} style={{ fontFamily: "'Orbitron',sans-serif", fontSize: ".55rem", border: `1px solid ${ac}40`, color: ac, background: `${ac}12`, padding: ".25rem .65rem", borderRadius: 30, cursor: "pointer" }}>
+            {light ? "🌌 Night Mode" : "☄️ Light Mode"}
+          </button>
+        </div>
+        {NAV_LINKS.map((l, i) => (
           <a key={l} href={`#${l.toLowerCase()}`} onClick={() => setMenuOpen(false)}
-            style={{ textDecoration: "none", color: textPri, fontSize: "1.4rem", fontFamily: "'Orbitron',sans-serif", fontWeight: 700, letterSpacing: ".1em", textTransform: "uppercase", transition: "color .3s" }}
-            onMouseEnter={e => e.currentTarget.style.color = ac}
-            onMouseLeave={e => e.currentTarget.style.color = textPri}
-          >{l}</a>
+            style={{
+              textDecoration: "none",
+              color: activeSection === i ? ac : textPri,
+              fontSize: ".95rem",
+              fontFamily: "'Space Grotesk',sans-serif",
+              fontWeight: 600,
+              letterSpacing: ".08em",
+              textTransform: "uppercase",
+              padding: ".55rem .9rem",
+              borderRadius: 12,
+              background: activeSection === i ? `${ac}15` : "transparent",
+              border: activeSection === i ? `1px solid ${ac}30` : "1px solid transparent",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              transition: "all .2s ease"
+            }}
+          >
+            <span>{l}</span>
+            <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: ".58rem", color: ac, opacity: .7 }}>0{i + 1}</span>
+          </a>
         ))}
-
       </div>
 
       {/* ════════════════════════════════════════════════════════════ */}
