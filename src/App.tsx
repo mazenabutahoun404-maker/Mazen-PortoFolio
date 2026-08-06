@@ -124,28 +124,21 @@ const Cubes: React.FC<CubesProps> = ({
   maxAngle = 48,
   radius = 2.5,
   cellGap = 34,
-  borderStyle = '2px dashed rgba(0, 255, 136, 0.65)',
-  faceColor = 'rgba(8, 28, 18, 0.95)',
   rippleColor = '#00ff88',
   rippleSpeed = 1.5,
   autoAnimate = true,
   rippleOnClick = true,
   skills = [],
   accentColor = '#00ff88',
-  textPri = '#ffffff',
   light = false
 }) => {
   const sceneRef = useRef<HTMLDivElement | null>(null);
   const rafRef = useRef<number | null>(null);
   const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const userActiveRef = useRef(false);
-  const simPosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
-  const simTargetRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
-  const simRAFRef = useRef<number | null>(null);
 
   const skillPositions = useRef<Map<number, typeof skills[0]>>(new Map());
   if (skillPositions.current.size === 0 && skills.length > 0) {
-    const totalCells = cols * rows;
     const positions = [0, 1, 3, 4, 6, 8, 10, 11, 13, 15, 17, 19, 21, 22];
     skills.forEach((skill, i) => {
       if (i < positions.length) {
@@ -293,9 +286,6 @@ const Cubes: React.FC<CubesProps> = ({
       const normalBg = light
         ? 'linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(230, 255, 240, 0.94))'
         : 'linear-gradient(135deg, #0e2a1b, #071c11)';
-      const normalShadow = light
-        ? '0 4px 15px rgba(0,0,0,0.06), inset 0 0 12px rgba(0,180,100,0.15)'
-        : `0 6px 20px rgba(0,0,0,0.7), 0 0 15px ${accentColor}25, inset 0 0 12px ${accentColor}25`;
       const normalBorder = light ? '2px dashed rgba(0, 180, 100, 0.8)' : `2px dashed ${accentColor}dd`;
 
       Object.keys(rings)
@@ -1022,7 +1012,6 @@ export default function App() {
   const textPri = light ? "#0a0f1e" : "#ffffff";
   const textSec = light ? "#2a2a4a" : "rgba(255,255,255,.55)";
   const textMut = light ? "#5a5a8a" : "rgba(255,255,255,.32)";
-  const navBg = light ? "rgba(240,245,255,.88)" : "rgba(2,4,8,.65)";
   const inputBg = light ? "rgba(255,255,255,.9)" : "rgba(255,255,255,.04)";
   const inputBdr = light ? `${ac}40` : "rgba(255,255,255,.12)";
 
