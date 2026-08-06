@@ -212,16 +212,21 @@ const Cubes: React.FC<CubesProps> = ({
 
       idleTimerRef.current = setTimeout(() => {
         userActiveRef.current = false;
-      }, 3500);
+      }, 3000);
     },
     [cols, rows, tiltAt]
   );
 
   const resetAll = useCallback(() => {
     if (!sceneRef.current) return;
+    if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+    idleTimerRef.current = setTimeout(() => {
+      userActiveRef.current = false;
+    }, 3000);
+
     sceneRef.current.querySelectorAll<HTMLDivElement>('.cube').forEach(cube =>
       gsap.to(cube, {
-        duration: 1.8,
+        duration: 1.6,
         rotateX: 0,
         rotateY: 0,
         scale: 1,
@@ -328,34 +333,60 @@ const Cubes: React.FC<CubesProps> = ({
     if (!autoAnimate || !sceneRef.current) return;
 
     let isVisible = false;
-    let time = 0;
+    let randomTimer: ReturnType<typeof setInterval> | null = null;
+
+    simPosRef.current = { x: Math.random() * cols, y: Math.random() * rows };
+    simTargetRef.current = { x: Math.random() * cols, y: Math.random() * rows };
+    const speed = 0.02;
 
     const loop = () => {
-      if (isVisible && !userActiveRef.current && sceneRef.current) {
-        time += 0.015;
-        const cubes = sceneRef.current.querySelectorAll<HTMLDivElement>('.cube');
-        cubes.forEach(cube => {
-          const r = +cube.dataset.row!;
-          const c = +cube.dataset.col!;
-          const phase = r * 0.6 + c * 0.8;
+      const isMobile = window.innerWidth <= 768 || window.matchMedia('(pointer: coarse)').matches;
 
-          // Subtle organic 3D rotation (10-14 degrees max per cube)
-          const rotX = Math.sin(time + phase) * 11;
-          const rotY = Math.cos(time * 0.85 + phase * 1.1) * 13;
-
-          gsap.to(cube, {
-            duration: 0.8,
-            rotateX: rotX,
-            rotateY: rotY,
-            ease: 'sine.out',
-            overwrite: 'auto'
-          });
-        });
+      // On Mobile: Automatically sweep tiltAt across grid cells smoothly!
+      if (isVisible && isMobile && sceneRef.current) {
+        const pos = simPosRef.current;
+        const tgt = simTargetRef.current;
+        pos.x += (tgt.x - pos.x) * speed;
+        pos.y += (tgt.y - pos.y) * speed;
+        tiltAt(pos.y, pos.x);
+        if (Math.hypot(pos.x - tgt.x, pos.y - tgt.y) < 0.15) {
+          simTargetRef.current = { x: Math.random() * cols, y: Math.random() * rows };
+        }
       }
+
       if (isVisible) {
         simRAFRef.current = requestAnimationFrame(loop);
       }
     };
+
+    // On Desktop: when mouse is far away / idle for 3 seconds, randomly rotate a few cubes!
+    randomTimer = setInterval(() => {
+      const isMobile = window.innerWidth <= 768 || window.matchMedia('(pointer: coarse)').matches;
+      if (!isMobile && isVisible && !userActiveRef.current && sceneRef.current) {
+        const allCubes = Array.from(sceneRef.current.querySelectorAll<HTMLDivElement>('.cube'));
+        if (allCubes.length === 0) return;
+
+        // Pick 3 to 5 random cubes
+        const count = Math.floor(Math.random() * 3) + 3;
+        const shuffled = [...allCubes].sort(() => 0.5 - Math.random());
+        const selected = shuffled.slice(0, count);
+
+        selected.forEach(cube => {
+          const rx = (Math.random() - 0.5) * 44;
+          const ry = (Math.random() - 0.5) * 52;
+
+          gsap.to(cube, {
+            rotateX: rx,
+            rotateY: ry,
+            duration: 1.4,
+            ease: 'power2.out',
+            yoyo: true,
+            repeat: 1,
+            repeatDelay: 0.8
+          });
+        });
+      }
+    }, 2800);
 
     const observer = new IntersectionObserver(([entry]) => {
       isVisible = entry.isIntersecting;
@@ -371,9 +402,10 @@ const Cubes: React.FC<CubesProps> = ({
 
     return () => {
       observer.disconnect();
+      if (randomTimer) clearInterval(randomTimer);
       if (simRAFRef.current != null) cancelAnimationFrame(simRAFRef.current);
     };
-  }, [autoAnimate]);
+  }, [autoAnimate, cols, rows, tiltAt]);
 
   useEffect(() => {
     const el = sceneRef.current;
