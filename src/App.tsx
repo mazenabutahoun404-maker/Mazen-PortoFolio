@@ -52,7 +52,7 @@ const SERVICES = [
 ];
 
 const SOCIALS = [
-  { icon: "✉", name: "Email", url: "#contact", color: "#ff6b35" },
+  { icon: "✉", name: "Email", url: "mailto:mazenabutahoun404@gmail.com", color: "#ff6b35" },
   { icon: "in", name: "LinkedIn", url: "https://www.linkedin.com/in/mazen-abutahoun-7273b5235/", color: "#00d4ff" },
   { icon: "⌥", name: "GitHub", url: "https://github.com/mazenabutahoun404-maker", color: "#00ff88" },
   { icon: "✦", name: "Instagram", url: "https://www.instagram.com/mazen_abutahoun/", color: "#ff3cac" },
@@ -551,8 +551,22 @@ export default function App() {
   const [activeSection, setActive] = useState(0);
   const [light, setLight] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [contactForm, setContactForm] = useState({ name: '', email: '', subject: '', message: '' });
+  const [contactSent, setContactSent] = useState(false);
   const lightRef = useRef(light);
   useEffect(() => { lightRef.current = light; }, [light]);
+
+  const handleContactSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const name = contactForm.name || 'Portfolio Visitor';
+    const email = contactForm.email || '';
+    const subject = encodeURIComponent(contactForm.subject || `Project Inquiry from ${name}`);
+    const body = encodeURIComponent(`Hello Mazen,\n\nName: ${name}\nEmail: ${email}\n\nMessage:\n${contactForm.message}`);
+    
+    window.location.href = `mailto:mazenabutahoun404@gmail.com?subject=${subject}&body=${body}`;
+    setContactSent(true);
+    setTimeout(() => setContactSent(false), 5000);
+  };
 
   const theme = SECTION_THEMES[activeSection];
 
@@ -1578,44 +1592,82 @@ export default function App() {
           <p style={{ color: textSec, marginBottom: "2.2rem", fontSize: ".92rem", lineHeight: 1.9 }}>
             Have a vision? A project that pushes boundaries? Let's connect and create something extraordinary together.
           </p>
-          <div style={{ display: "grid", gap: ".9rem", textAlign: "left" }}>
+          <form onSubmit={handleContactSubmit} style={{ display: "grid", gap: ".9rem", textAlign: "left" }}>
             <div className="contact-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: ".9rem" }}>
-              {[["Name", "Your name", "text"], ["Email", "your@email.com", "email"]].map(([label, ph, type]) => (
-                <div key={label}>
-                  <label style={{ display: "block", marginBottom: ".45rem", fontFamily: "'Orbitron',sans-serif", fontSize: ".58rem", letterSpacing: ".28em", color: SECTION_THEMES[6].color, textTransform: "uppercase" }}>{label}</label>
-                  <input type={type} placeholder={ph} className="space-input" />
-                </div>
-              ))}
+              <div>
+                <label style={{ display: "block", marginBottom: ".45rem", fontFamily: "'Orbitron',sans-serif", fontSize: ".58rem", letterSpacing: ".28em", color: SECTION_THEMES[6].color, textTransform: "uppercase" }}>Name</label>
+                <input
+                  type="text"
+                  placeholder="Your name"
+                  className="space-input"
+                  value={contactForm.name}
+                  onChange={e => setContactForm({ ...contactForm, name: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <label style={{ display: "block", marginBottom: ".45rem", fontFamily: "'Orbitron',sans-serif", fontSize: ".58rem", letterSpacing: ".28em", color: SECTION_THEMES[6].color, textTransform: "uppercase" }}>Email</label>
+                <input
+                  type="email"
+                  placeholder="your@email.com"
+                  className="space-input"
+                  value={contactForm.email}
+                  onChange={e => setContactForm({ ...contactForm, email: e.target.value })}
+                  required
+                />
+              </div>
             </div>
             <div>
               <label style={{ display: "block", marginBottom: ".45rem", fontFamily: "'Orbitron',sans-serif", fontSize: ".58rem", letterSpacing: ".28em", color: SECTION_THEMES[6].color, textTransform: "uppercase" }}>Subject</label>
-              <input type="text" placeholder="What are we building?" className="space-input" />
+              <input
+                type="text"
+                placeholder="What are we building?"
+                className="space-input"
+                value={contactForm.subject}
+                onChange={e => setContactForm({ ...contactForm, subject: e.target.value })}
+              />
             </div>
             <div>
               <label style={{ display: "block", marginBottom: ".45rem", fontFamily: "'Orbitron',sans-serif", fontSize: ".58rem", letterSpacing: ".28em", color: SECTION_THEMES[6].color, textTransform: "uppercase" }}>Message</label>
-              <textarea rows={4} placeholder="Tell me about your vision..." className="space-input" style={{ resize: "vertical" }} />
+              <textarea
+                rows={4}
+                placeholder="Tell me about your vision..."
+                className="space-input"
+                style={{ resize: "vertical" }}
+                value={contactForm.message}
+                onChange={e => setContactForm({ ...contactForm, message: e.target.value })}
+                required
+              />
             </div>
-            <motion.button
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
-                duration: 1,
-                type: "spring",
-                stiffness: 100,
-                damping: 20,
-              }}
+            <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
+              <motion.button
+                type="submit"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: 1,
+                  type: "spring",
+                  stiffness: 100,
+                  damping: 20,
+                }}
+                className="btn-gradient-shadow self-start rounded-full border-none text-white font-['Orbitron',sans-serif] text-[0.7rem] tracking-[0.22em] font-bold cursor-pointer uppercase transition-all duration-300 animate-[heroGradient_4s_linear_infinite]"
+                style={{
+                  padding: "1.2rem 2.5rem",
+                  backgroundImage: `linear-gradient(135deg, ${SECTION_THEMES[6].color}, ${SECTION_THEMES[6].color2}, ${SECTION_THEMES[6].color})`,
+                  backgroundSize: "200% auto"
+                }}
+                onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.transform = "translateY(-3px) scale(1.02)"; }}
+                onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.transform = ""; }}
+              >Initiate Contact ↗
+              </motion.button>
 
-              className="btn-gradient-shadow self-start rounded-full border-none text-white font-['Orbitron',sans-serif] text-[0.7rem] tracking-[0.22em] font-bold cursor-pointer uppercase transition-all duration-300 animate-[heroGradient_4s_linear_infinite]"
-              style={{
-                padding: "1.2rem 2.5rem",
-                backgroundImage: `linear-gradient(135deg, ${SECTION_THEMES[6].color}, ${SECTION_THEMES[6].color2}, ${SECTION_THEMES[6].color})`,
-                backgroundSize: "200% auto"
-              }}
-              onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.transform = "translateY(-3px) scale(1.02)"; }}
-              onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.transform = ""; }}
-            >Initiate Contact ↗
-            </motion.button>
-          </div>
+              {contactSent && (
+                <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: ".65rem", letterSpacing: ".18em", color: SECTION_THEMES[6].color }}>
+                  ✓ Launching Mail Client...
+                </span>
+              )}
+            </div>
+          </form>
 
           <div style={{ display: "flex", justifyContent: "center", gap: "1.8rem", marginTop: "2.2rem", flexWrap: "wrap" }}>
             {SOCIALS.map(l => (
