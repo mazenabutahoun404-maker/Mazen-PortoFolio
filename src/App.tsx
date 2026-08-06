@@ -322,11 +322,26 @@ const Cubes: React.FC<CubesProps> = ({
 
   useEffect(() => {
     if (!autoAnimate || !sceneRef.current) return;
+
+    let isVisible = false;
+    const observer = new IntersectionObserver(([entry]) => {
+      isVisible = entry.isIntersecting;
+      if (!isVisible && simRAFRef.current != null) {
+        cancelAnimationFrame(simRAFRef.current);
+        simRAFRef.current = null;
+      } else if (isVisible && simRAFRef.current == null) {
+        loop();
+      }
+    }, { threshold: 0.1 });
+
+    observer.observe(sceneRef.current);
+
     simPosRef.current = { x: Math.random() * cols, y: Math.random() * rows };
     simTargetRef.current = { x: Math.random() * cols, y: Math.random() * rows };
     const speed = 0.025;
+
     const loop = () => {
-      if (!userActiveRef.current) {
+      if (isVisible && !userActiveRef.current) {
         const pos = simPosRef.current;
         const tgt = simTargetRef.current;
         pos.x += (tgt.x - pos.x) * speed;
@@ -336,10 +351,13 @@ const Cubes: React.FC<CubesProps> = ({
           simTargetRef.current = { x: Math.random() * cols, y: Math.random() * rows };
         }
       }
-      simRAFRef.current = requestAnimationFrame(loop);
+      if (isVisible) {
+        simRAFRef.current = requestAnimationFrame(loop);
+      }
     };
-    simRAFRef.current = requestAnimationFrame(loop);
+
     return () => {
+      observer.disconnect();
       if (simRAFRef.current != null) cancelAnimationFrame(simRAFRef.current);
     };
   }, [autoAnimate, cols, rows, tiltAt]);
@@ -347,8 +365,8 @@ const Cubes: React.FC<CubesProps> = ({
   useEffect(() => {
     const el = sceneRef.current;
     if (!el) return;
-    el.addEventListener('pointermove', onPointerMove);
-    el.addEventListener('pointerleave', resetAll);
+    el.addEventListener('pointermove', onPointerMove, { passive: true });
+    el.addEventListener('pointerleave', resetAll, { passive: true });
     el.addEventListener('click', onClick);
 
     el.addEventListener('touchmove', onTouchMove, { passive: false });
@@ -402,7 +420,7 @@ const Cubes: React.FC<CubesProps> = ({
             return (
               <div
                 key={`${r}-${c}`}
-                className="cube relative w-[70px] h-[70px] aspect-square [transform-style:preserve-3d] cursor-pointer"
+                className="cube relative w-[70px] h-[70px] aspect-square [transform-style:preserve-3d] cursor-pointer [will-change:transform]"
                 data-row={r}
                 data-col={c}
               >
@@ -1518,18 +1536,40 @@ export default function App() {
           .mobile-theme-btn { display: block !important; }
           .nav-desktop { display: none !important; }
         }
-        @media (max-width: 768px) {
+        @media (max-width: 900px) {
           .cubes-custom-grid {
-            grid-template-columns: repeat(4, 68px) !important;
-            grid-template-rows: repeat(6, 68px) !important;
-            gap: 22px !important;
+            grid-template-columns: repeat(6, 58px) !important;
+            grid-template-rows: repeat(4, 58px) !important;
+            gap: 18px !important;
+            max-width: 100% !important;
+          }
+          .cubes-custom-grid .cube {
+            width: 58px !important;
+            height: 58px !important;
           }
         }
-        @media (max-width: 520px) {
+        @media (max-width: 600px) {
           .cubes-custom-grid {
-            grid-template-columns: repeat(3, 65px) !important;
-            grid-template-rows: repeat(8, 65px) !important;
-            gap: 18px !important;
+            grid-template-columns: repeat(4, 54px) !important;
+            grid-template-rows: repeat(6, 54px) !important;
+            gap: 14px !important;
+            max-width: 100% !important;
+          }
+          .cubes-custom-grid .cube {
+            width: 54px !important;
+            height: 54px !important;
+          }
+        }
+        @media (max-width: 420px) {
+          .cubes-custom-grid {
+            grid-template-columns: repeat(3, 48px) !important;
+            grid-template-rows: repeat(8, 48px) !important;
+            gap: 10px !important;
+            max-width: 100% !important;
+          }
+          .cubes-custom-grid .cube {
+            width: 48px !important;
+            height: 48px !important;
           }
         }
       `}</style>
