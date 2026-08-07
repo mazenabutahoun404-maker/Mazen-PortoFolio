@@ -551,13 +551,33 @@ export default function App() {
   const [activeSection, setActive] = useState(0);
   const [light, setLight] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [contactForm, setContactForm] = useState({ name: '', email: '', subject: '', message: '' });
+  const [contactForm, setContactForm] = useState({ name: '', email: '', subject: '', message: '', hp: '' });
   const [contactSent, setContactSent] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
   const lightRef = useRef(light);
   useEffect(() => { lightRef.current = light; }, [light]);
 
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setInterval(() => {
+      setCooldown(prev => prev - 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldown]);
+
   const handleContactSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Honeypot check: If invisible field is filled by a bot, reject
+    if (contactForm.hp) {
+      return;
+    }
+
+    // Cooldown check: Prevent spamming
+    if (cooldown > 0) {
+      return;
+    }
+
     const name = contactForm.name || 'Portfolio Visitor';
     const email = contactForm.email || '';
     const subject = encodeURIComponent(contactForm.subject || `Project Inquiry from ${name}`);
@@ -565,6 +585,7 @@ export default function App() {
     
     window.location.href = `mailto:mazenabutahoun404@gmail.com?subject=${subject}&body=${body}`;
     setContactSent(true);
+    setCooldown(15);
     setTimeout(() => setContactSent(false), 5000);
   };
 
@@ -1639,9 +1660,20 @@ export default function App() {
                 required
               />
             </div>
+            {/* Hidden honeypot field to block bot spam */}
+            <input
+              type="text"
+              name="website_hp"
+              value={contactForm.hp}
+              onChange={e => setContactForm({ ...contactForm, hp: e.target.value })}
+              style={{ display: "none" }}
+              tabIndex={-1}
+              autoComplete="off"
+            />
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "1rem", marginTop: ".5rem" }}>
               <motion.button
                 type="submit"
+                disabled={cooldown > 0}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{
@@ -1650,16 +1682,28 @@ export default function App() {
                   stiffness: 100,
                   damping: 20,
                 }}
-                className="btn-gradient-shadow rounded-full border-none text-white font-['Orbitron',sans-serif] text-[0.7rem] tracking-[0.22em] font-bold cursor-pointer uppercase transition-all duration-300 animate-[heroGradient_4s_linear_infinite]"
+                className="btn-gradient-shadow rounded-full border-none text-white font-['Orbitron',sans-serif] text-[0.72rem] tracking-[0.24em] font-bold cursor-pointer uppercase transition-all duration-300 animate-[heroGradient_4s_linear_infinite]"
                 style={{
-                  padding: "1.2rem 2.8rem",
-                  backgroundImage: `linear-gradient(135deg, ${SECTION_THEMES[6].color}, ${SECTION_THEMES[6].color2}, ${SECTION_THEMES[6].color})`,
+                  padding: "1.25rem 4rem",
+                  minWidth: "300px",
+                  maxWidth: "100%",
+                  backgroundImage: cooldown > 0
+                    ? `linear-gradient(135deg, rgba(80,80,80,0.5), rgba(40,40,40,0.5))`
+                    : `linear-gradient(135deg, ${SECTION_THEMES[6].color}, ${SECTION_THEMES[6].color2}, ${SECTION_THEMES[6].color})`,
                   backgroundSize: "200% auto",
-                  margin: "0 auto"
+                  margin: "0 auto",
+                  opacity: cooldown > 0 ? 0.65 : 1,
+                  cursor: cooldown > 0 ? "not-allowed" : "pointer"
                 }}
-                onMouseEnter={e => { const el = e.currentTarget as HTMLElement; el.style.transform = "translateY(-3px) scale(1.02)"; }}
+                onMouseEnter={e => {
+                  if (cooldown <= 0) {
+                    const el = e.currentTarget as HTMLElement;
+                    el.style.transform = "translateY(-3px) scale(1.02)";
+                  }
+                }}
                 onMouseLeave={e => { const el = e.currentTarget as HTMLElement; el.style.transform = ""; }}
-              >Initiate Contact ↗
+              >
+                {cooldown > 0 ? `Anti-Spam Wait (${cooldown}s)` : "Initiate Contact ↗"}
               </motion.button>
 
               {contactSent && (
